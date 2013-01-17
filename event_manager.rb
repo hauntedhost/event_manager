@@ -3,9 +3,12 @@ require "csv"
 
 # Class Definition
 class EventManager
-  def initialize
+
+	INVALID_PHONE_NUMBER = "0000000000"
+	INVALID_ZIPCODE = "00000"
+
+  def initialize(filename)
     puts "EventManager Initialized."
-    filename = "event_attendees.csv"
     @file = CSV.open(filename, {headers: true, header_converters: :symbol})
   end
 
@@ -24,30 +27,27 @@ class EventManager
 
   def clean_number(number)
   	number = number.scan(/\d/).join
-  	junk = "0000000000"
 
   	number = case number.length
   	when 10 then 
   		number
   	when 11
-  		number[0] == "1" ? number[1..-1] : junk
+  		number[0] == "1" ? number[1..-1] : INVALID_PHONE_NUMBER
   	else
-  		junk
+  		INVALID_PHONE_NUMBER
   	end
   end
 
   def clean_zipcode(zip)
-  	junk = "00000"
-
  		zip = case
  		when zip.nil?
- 			junk
+ 			INVALID_ZIPCODE
  		when zip.length < 5
  			"%05d" % zip
  		when zip.length == 5
  			zip
  		else
- 			junk
+ 			INVALID_ZIPCODE
  		end
   end
 
@@ -57,10 +57,17 @@ class EventManager
   		puts zipcode
   	end
   end
+
+  def output_data(filename)
+  	output = CSV.open(filename, "w")
+  	@file.each do |line|
+			line[:homephone] = clean_number(line[:homephone])
+			line[:zipcode] = clean_zipcode(line[:zipcode])
+  		@file.lineno == 2 ? output << line.headers : output << line
+  	end
+  end
 end
 
 # Script
-manager = EventManager.new
-#manager.print_names
-#manager.print_numbers
-manager.print_zipcodes
+manager = EventManager.new("event_attendees.csv")
+manager.output_data("event_attendees_clean.csv")
