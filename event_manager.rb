@@ -1,11 +1,12 @@
 # Dependencies
 require "csv"
+require 'sunlight'
 
 # Class Definition
 class EventManager
-
 	INVALID_PHONE_NUMBER = "0000000000"
 	INVALID_ZIPCODE = "00000"
+	Sunlight::Base.api_key = "d885cdc6f21c49cabcbf326a03c85305"
 
   def initialize(filename)
     puts "EventManager Initialized."
@@ -66,8 +67,25 @@ class EventManager
   		@file.lineno == 2 ? output << line.headers : output << line
   	end
   end
+
+  def rep_lookup
+  	20.times do
+  		line = @file.readline
+  		legislators = Sunlight::Legislator.all_in_zipcode(clean_zipcode(line[:zipcode]))
+			names = legislators.map do |leg|
+				title = leg.title
+				party = leg.party
+				first_name = leg.firstname
+				first_initial = first_name[0]
+				last_name = leg.lastname
+				"#{title} #{first_initial}. #{last_name} (#{party})" 
+			end
+			puts "#{line[:last_name]}, #{line[:first_name]}, #{line[:zipcode]}, #{names.join(", ")}"
+  	end
+  end
 end
 
 # Script
 manager = EventManager.new("event_attendees.csv")
-manager.output_data("event_attendees_clean.csv")
+#manager.output_data("event_attendees_clean.csv")
+manager.rep_lookup
