@@ -23,8 +23,8 @@ class EventManager
   end
 
   def clean_number(number)
-  	junk = "0000000000"
   	number = number.scan(/\d/).join
+  	junk = "0000000000"
 
   	number = case number.length
   	when 10 then 
@@ -36,9 +36,31 @@ class EventManager
   	end
   end
 
+  def clean_zipcode(zip)
+  	junk = "00000"
+
+ 		zip = case
+ 		when zip.nil?
+ 			junk
+ 		when zip.length < 5
+ 			"%05d" % zip
+ 		when zip.length == 5
+ 			zip
+ 		else
+ 			junk
+ 		end
+  end
+
+  def print_zipcodes
+  	@file.each do |line|
+  		zipcode = clean_zipcode(line[:zipcode])
+  		puts zipcode
+  	end
+  end
 end
 
 # Script
 manager = EventManager.new
 #manager.print_names
-manager.print_numbers
+#manager.print_numbers
+manager.print_zipcodes
