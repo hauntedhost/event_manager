@@ -79,13 +79,29 @@ class EventManager
 				first_initial = first_name[0]
 				last_name = leg.lastname
 				"#{title} #{first_initial}. #{last_name} (#{party})" 
-			end
+			end			
 			puts "#{line[:last_name]}, #{line[:first_name]}, #{line[:zipcode]}, #{names.join(", ")}"
   	end
   end
+
+  def create_form_letters
+		REPLACEMENTS = %w(first_name last_name street city state zipcode)
+		letter = File.open("form_letter.html", "r").read
+		20.times do
+			line = @file.readline
+			REPLACEMENTS.each do |rep|
+				letter.gsub!("##{rep}", line[rep.to_sym].to_s)
+			end
+			filename = "output/thanks_#{line[:last_name].downcase}_#{line[:first_name].downcase}.html"
+			output = File.new(filename, "w")
+			output.write(letter)
+			output.close
+		end		
+	end  
 end
 
 # Script
 manager = EventManager.new("event_attendees.csv")
 #manager.output_data("event_attendees_clean.csv")
-manager.rep_lookup
+#manager.rep_lookup
+manager.create_form_letters
