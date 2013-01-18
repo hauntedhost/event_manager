@@ -85,11 +85,11 @@ class EventManager
   end
 
   def create_form_letters
-		REPLACEMENTS = %w(first_name last_name street city state zipcode)
+		replacements = %w(first_name last_name street city state zipcode)
 		letter = File.open("form_letter.html", "r").read
 		20.times do
 			line = @file.readline
-			REPLACEMENTS.each do |rep|
+			replacements.each do |rep|
 				letter.gsub!("##{rep}", line[rep.to_sym].to_s)
 			end
 			filename = "output/thanks_#{line[:last_name].downcase}_#{line[:first_name].downcase}.html"
@@ -97,11 +97,33 @@ class EventManager
 			output.write(letter)
 			output.close
 		end		
-	end  
+	end
+
+  def rank_times
+    hours = Array.new(24){0}
+    @file.each do |line|
+      #11/12/08 16:05
+      hour = line[:regdate].split[1].split(":")[0]
+      hours[hour.to_i] += 1
+    end
+    hours.each_with_index { |counter, hour| puts "#{hour}\t#{counter}" }
+  end
+
+  def day_stats
+  	days = Array.new(7){0}
+  	day_names = %w(sun mon tue wed thu fri sat)
+  	@file.each do |line|
+  		date = Date.strptime(line[:regdate].split[0], "%m/%d/%y")
+  		days[date.wday] += 1 
+  	end
+  	days.each_with_index { |counter, day| puts "#{day_names[day].capitalize}\t#{counter}" }
+  end
 end
 
 # Script
 manager = EventManager.new("event_attendees.csv")
 #manager.output_data("event_attendees_clean.csv")
 #manager.rep_lookup
-manager.create_form_letters
+#manager.create_form_letters
+#manager.rank_times
+manager.day_stats
